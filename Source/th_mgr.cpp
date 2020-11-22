@@ -271,4 +271,4 @@ int MyApp::OnExit() {
 
 	return 0;
 }
-wxIMPLEMENT_APP(MyApp);
+IMPLEMENT_APP(MyApp);
