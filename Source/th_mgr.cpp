@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 
 //バージョン設定
 const float VERSION = 0.01f;
-const std::string VERSION_STR = "0.01";
+const std::string VERSION_STR = "0.0.1";
 
 const std::string default_setting_json = R"({"dirs":[] })";
 
