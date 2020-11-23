@@ -1,5 +1,5 @@
 #pragma once
-
+#include "NEW.h"
 
 #include <wx/wx.h>
 #include <wx/msw/private.h>
@@ -11,6 +11,7 @@
 #include "TH.h"
 
 
+
 namespace fs = std::filesystem;
 
 
@@ -19,7 +20,7 @@ class TH_Panel : public wxPanel
 private:
 	wxBoxSizer *Boxsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *namebox = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* command_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* command_box = new wxBoxSizer(wxVERTICAL);
 	wxPanel *namepanel;
 	wxPanel *commandpanel;
 	wxStaticText *name_t;
@@ -86,7 +87,6 @@ private:
 		this->namepanel->SetSizer(this->namebox);
 
 		this->commandpanel = new wxPanel(this);
-		this->command_box = new wxBoxSizer(wxVERTICAL);
 
 		int command_id = this->index + 1000;
 
@@ -132,7 +132,6 @@ public:
 		this->th = th;
 		this->INIT();
 		this->SetFrame();
-		wxMessageBox(std::to_string(sizeof(ParentPanel)));
 	}
 
 	~TH_Panel() {

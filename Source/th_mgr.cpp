@@ -1,5 +1,5 @@
-﻿// wxWidgets "Hello World" Program
-// For compilers that support precompilation, includes "wx/wx.h".
+﻿#include "NEW.h"
+
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -21,6 +21,8 @@
 #include "TH_Panel.h"
 #include "th_data.h"
 #include "TH.h"
+
+
 namespace fs = std::filesystem;
 
 //バージョン設定
@@ -168,9 +170,9 @@ void MainFrame::OnHello(wxCommandEvent& event)
 void MainFrame::Add_TH_Panel(std::vector<fs::path> path){
 	for(fs::path th_path : path){
 		TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
-		new char[2];
-		TH_Panel* th_p = new TH_Panel(this->TH_list_window, th_path, th);
-		new char[1];
+
+		TH_Panel* th_p =  NEW TH_Panel(this->TH_list_window, th_path, th);
+		
 		this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
 		PATH_VECTOR.push_back(th_path.generic_string());
 		SetStatusText(th_path.generic_string());
@@ -268,6 +270,7 @@ int MyApp::OnExit() {
 	//wxMessageBox(std::to_string(PATH_VECTOR.size()));
 	this->frame->Save_setting_file();
 	std::vector<std::string>().swap(PATH_VECTOR);
+	
 	return 0;
 }
 wxIMPLEMENT_APP(MyApp);

@@ -172,6 +172,7 @@
     <ClInclude Include="include\cppglob\glob.hpp" />
     <ClInclude Include="include\cppglob\glob_iterator.hpp" />
     <ClInclude Include="include\cppglob\iglob.hpp" />
+    <ClInclude Include="Source\NEW.h" />
     <ClInclude Include="Source\resource.h" />
     <ClInclude Include="Source\TH.h" />
     <ClInclude Include="Source\th_data.h" />
