@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <wx/wx.h>
 #include <wx/msw/private.h>
 #include <filesystem>
@@ -58,6 +59,7 @@ private:
 
 	void SetFrame() {
 		wxSize size = wxSize(-1,100);
+		this->image = nullptr;
 		this->SetSize(size);
 
 		this->namepanel = new wxPanel(this);
@@ -107,6 +109,7 @@ private:
 		this->Boxsizer->Add(this->commandpanel,0,	wxGROW | wxALL, 5);
 		this->Boxsizer->Add(delete_btn,0,			wxGROW | wxALL, 5);
 		this->SetSizer(this->Boxsizer);
+
 	}
 
 public:
@@ -129,6 +132,13 @@ public:
 		this->th = th;
 		this->INIT();
 		this->SetFrame();
+		wxMessageBox(std::to_string(sizeof(ParentPanel)));
+	}
+
+	~TH_Panel() {
+		delete this->BigFont;
+		delete this->image;
+		wxMessageBox("death");
 	}
 
 };

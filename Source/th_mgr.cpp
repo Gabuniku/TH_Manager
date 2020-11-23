@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <fstream>
 
-
 // 外部ライブラリー
 #include <cppglob/glob.hpp>
 #include <json11.hpp>
@@ -49,7 +48,7 @@ class MainFrame : public wxFrame
 public:
 	MainFrame();
 	wxPanel* ROOT_PANEL;
-	std::vector<TH_Panel> THp_VECTOR;
+	//std::vector<TH_Panel> THp_VECTOR;
 	wxBoxSizer* ROOT_BOX = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* controller_box = new wxBoxSizer(wxHORIZONTAL);
 	wxPanel* controller_panel;
@@ -169,7 +168,9 @@ void MainFrame::OnHello(wxCommandEvent& event)
 void MainFrame::Add_TH_Panel(std::vector<fs::path> path){
 	for(fs::path th_path : path){
 		TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
+		new char[2];
 		TH_Panel* th_p = new TH_Panel(this->TH_list_window, th_path, th);
+		new char[1];
 		this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
 		PATH_VECTOR.push_back(th_path.generic_string());
 		SetStatusText(th_path.generic_string());
@@ -249,8 +250,6 @@ void MainFrame::Save_setting_file(wxCommandEvent& event) {
 }
 
 
-
-
 class MyApp : public wxApp
 {
 public:
@@ -268,7 +267,7 @@ bool MyApp::OnInit() {
 int MyApp::OnExit() {
 	//wxMessageBox(std::to_string(PATH_VECTOR.size()));
 	this->frame->Save_setting_file();
-
+	std::vector<std::string>().swap(PATH_VECTOR);
 	return 0;
 }
-IMPLEMENT_APP(MyApp);
+wxIMPLEMENT_APP(MyApp);

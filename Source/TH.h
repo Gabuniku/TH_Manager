@@ -13,10 +13,10 @@ private:
 		CHAR name[1024];
 		DWORD dwUserSize = 1024;
 		if (!GetUserNameA(name, &dwUserSize)) {
-			return 0;
+			return "";
 		}
-
-		return std::string("C:\\Users\\" + std::string(name) + "\\AppData\\Roaming\\ShanghaiAlice\\" + this->numbering_str);
+		std::string result = std::string("C:\\Users\\" + std::string(name) + "\\AppData\\Roaming\\ShanghaiAlice\\" + this->numbering_str);
+		return result;
 	}
 	void INIT() {
 		this->numbering_str = this->path.stem().generic_string();
@@ -26,6 +26,7 @@ private:
 		std::filesystem::path dat_path = this->numbering_str + "tr.dat";
 		std::filesystem::path demo_path = this->path.parent_path() /= dat_path;
 		this->Is_demo = std::filesystem::exists(demo_path);
+		
 	}
 
 public:
