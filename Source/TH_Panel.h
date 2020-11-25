@@ -137,7 +137,6 @@ public:
 	~TH_Panel() {
 		delete this->BigFont;
 		delete this->image;
-		wxMessageBox("death");
 	}
 
 };
