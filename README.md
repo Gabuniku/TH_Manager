@@ -1,5 +1,9 @@
 # TH_Manager
 
+このソフトウェアはMITライセンスのもとで公開されています。
+
+This software is released under the MIT License, see LICENSE.
+
 ここは東方マネージャー(TouHou Manager)のお部屋です。
 ## このソフトについて
   
