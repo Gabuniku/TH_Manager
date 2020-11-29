@@ -8,23 +8,44 @@
 namespace TH_data {
     //THナンバリング(str) to float ナンバリング
     const std::map<std::string, float> TH_name_toNumbering = {
-    {u8"紅魔郷"					, 6.0f},
-    {u8"妖々夢"					, 7.0f},
-    {u8"永夜抄"					, 8.0f},
-    {u8"花映塚"					, 9.0f},
-    {u8"文花帖"					, 9.5f},
-    {u8"風神録"					, 10.0f},
-    {u8"地霊殿"					, 11.0f},
-    {u8"星蓮船"					, 12.0f},
-    {u8"ダブルスポイラー"		, 12.5f},
-    {u8"妖精大戦争"    			, 12.8f},
-    {u8"神霊廟"					, 13.0f},
-    {u8"輝針城"					, 14.0f},
-    {u8"弾幕アマノジャク"		, 14.3f},
-    {u8"紺珠伝"					, 15.0f},
-    {u8"天空璋"					, 16.0f},
-    {u8"秘封ナイトメアダイヤリー", 16.5f},
-    {u8"鬼形獣"					, 17.0f}
+    {"紅魔郷"					, 6.0f},
+    {"妖々夢"					, 7.0f},
+    {"永夜抄"					, 8.0f},
+    {"花映塚"					, 9.0f},
+    {"文花帖"					, 9.5f},
+    {"風神録"					, 10.0f},
+    {"地霊殿"					, 11.0f},
+    {"星蓮船"				    , 12.0f},
+    {"ダブルスポイラー"		    , 12.5f},
+    {"妖精大戦争"    			, 12.8f},
+    {"神霊廟"					, 13.0f},
+    {"輝針城"					, 14.0f},
+    {"弾幕アマノジャク"		    , 14.3f},
+    {"紺珠伝"					, 15.0f},
+    {"天空璋"					, 16.0f},
+    {"秘封ナイトメアダイヤリー" , 16.5f},
+    {"鬼形獣"					, 17.0f}
+    };
+
+    //THナンバリング(str) to str ナンバリング
+    const std::map<std::string, std::string> TH_name_toNumbering_str = {
+    {"紅魔郷"					, "th06"    },
+    {"妖々夢"					, "th07"    },
+    {"永夜抄"					, "th08"    },
+    {"花映塚"					, "th09"    },
+    {"文花帖"					, "th10"    },
+    {"風神録"					, "th11"    },
+    {"地霊殿"					, "th12"    },
+    {"星蓮船"				    , "th12"    },
+    {"ダブルスポイラー"		    , "th125"   },
+    {"妖精大戦争"    			, "th128"   },
+    {"神霊廟"					, "th13"    },
+    {"輝針城"					, "th14"    },
+    {"弾幕アマノジャク"		    , "th143"   },
+    {"紺珠伝"					, "th15"    },
+    {"天空璋"					, "th16"    },
+    {"秘封ナイトメアダイヤリー" , "th165"   },
+    {"鬼形獣"					, "th17"    }
     };
 
     //THナンバリング(str) to ナンバリング
@@ -37,14 +58,14 @@ namespace TH_data {
     { "th11"	 , 10.0f },
     { "th12"	 , 11.0f },
     { "th12"	 , 12.0f },
-    { "th125" , 12.5f },
-    { "th128" , 12.8f },
+    { "th125"    , 12.5f },
+    { "th128"    , 12.8f },
     { "th13"	 , 13.0f },
     { "th14"	 , 14.0f },
-    { "th143" , 14.3f },
+    { "th143"    , 14.3f },
     { "th15"	 , 15.0f },
     { "th16"	 , 16.0f },
-    { "th165" , 16.5f },
+    { "th165"    , 16.5f },
     { "th17"	 , 17.0f }
     };
 
@@ -71,18 +92,21 @@ namespace TH_data {
 
     static const std::string Get_Fullname(std::string name) {
         std::string th_name = name;
-        if (th_name.substr(0, 2) == u8"東方") {
-            th_name = th_name.substr(2, th_name.size());
+        
+        if (th_name.substr(0, 4) == "東方") {//ワイド文字なので4
+            th_name = TH_name_toNumbering_str.at(th_name.substr(4, th_name.size()));
         }
-        if (th_name.substr(0, 2) != u8"th") {
-            return "test";
+
+        if(th_name.substr(th_name.size()-2,th_name.size()) == "tr"){
+            th_name = th_name.substr(0, th_name.size() - 2);
         }
+
         try {
             std::string th_fname = TH_fullname.at(th_name);
             return th_fname;
         }
         catch (...) {
-            return "error";
+            return "不明";
         }
     }
 

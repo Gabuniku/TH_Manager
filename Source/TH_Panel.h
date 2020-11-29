@@ -1,8 +1,14 @@
 #pragma once
 #include "NEW.h"
 
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
 #include <wx/wx.h>
+#include <wx/event.h>
+#endif
+#ifdef __WXMSW__
 #include <wx/msw/private.h>
+#endif
 #include <filesystem>
 #include <string>
 #include <map>
@@ -10,10 +16,50 @@
 #include "th_data.h"
 #include "TH.h"
 
-
-
 namespace fs = std::filesystem;
 
+class TH_Icon_Panel : public wxPanel {
+	
+public:
+	wxIcon* icon;
+	HICON Licon_handle, Sicon_handle;
+	PCTSTR filename = L"D:\\Appdatas\\ãŠCƒAƒŠƒXŒ¶žÙ’c\\“Œ•û’n—ì“a‘ÌŒ±”Å\\th11.exe";
+
+	TH_Icon_Panel(wxPanel* parent,std::string name):wxPanel(parent){
+		//this->filename = (PCTSTR)name.c_str();
+		this->SetSize(wxSize(100,100));
+		this->Set_exe_ico();
+		wxStaticBitmap bit = wxStaticBitmap();
+		bit.SetIcon(*this->icon);
+	}
+	~TH_Icon_Panel(){
+		DestroyIcon(Licon_handle);
+		DestroyIcon(Sicon_handle);
+	}
+
+
+	void OnPaint() {}
+
+	void Set_exe_ico() {
+		UINT icon_index = 0;
+		UINT get = ExtractIconEx(this->filename, 0, &this->Licon_handle, &this->Sicon_handle, 1);
+		if (get > 0) {
+		//wxMessageBox(std::to_string(get));
+			this->icon = new wxIcon();
+			this->icon->CreateFromHICON(Licon_handle);
+		}
+	}
+	void render(wxPaintEvent& evt) { this->render(); }
+	void render() {
+		wxMessageBox("");
+		wxClientDC dc(this);
+		dc.SetBrush(*wxGREEN_BRUSH); // green filling
+		dc.SetPen(wxPen(wxColor(255, 0, 0), 5)); // 5-pixels-thick red outline
+		dc.DrawCircle(wxPoint(0, 0), 25 /* radius */);
+		//HDC hdc = dc.GetHDC();
+		//DrawIconEx(hdc,0,0,Licon_handle,100,100,0,NULL,DI_NORMAL);
+	}
+};
 
 class TH_Panel : public wxPanel
 {
@@ -21,6 +67,8 @@ private:
 	wxBoxSizer *Boxsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *namebox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* command_box = new wxBoxSizer(wxVERTICAL);
+	TH_Icon_Panel* th_iconPanel;
+	wxStaticBitmap* th_icon;
 	wxPanel *namepanel;
 	wxPanel *commandpanel;
 	wxStaticText *name_t;
@@ -31,6 +79,7 @@ private:
 	wxStaticText* number_t;
 	wxStaticBitmap* image;
 	wxFont* BigFont = new wxFont(15,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
+	HICON Licon_handle;
 	TH th;
 	
 	void INIT(){
@@ -38,25 +87,17 @@ private:
 		this->numbering_str = this->th.numbering_str;
 		this->index = this->th.index;		
 	}
-	/*
-	wxIcon* Get_exe_icon(bool* f) {
-		HINSTANCE instance = wxGetInstance();
-		//std::wstring wfilepath = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(this->path_str);
-		//std::wstring wide;
-		//widen(this->path_str, wide);
-		PCTSTR filename = L"D:\\Appdatas\\ãŠCƒAƒŠƒXŒ¶žÙ’c\\“Œ•û’n—ì“a‘ÌŒ±”Å";
-		UINT icon_index = 0;
-		HICON icon_handle = ExtractIcon(instance, filename, icon_index);
-		if (icon_handle == 0) {
-			*f = false;
-			return new wxIcon();
+	
+	wxIcon Get_exe_icon() {
+		ExtractIconEx(this->path.wstring().c_str(), 0, &this->Licon_handle,NULL, 1);
+		if (this->Licon_handle == NULL) {
+			this->Licon_handle = LoadIcon(NULL, IDI_QUESTION);
 		}
-		wxIcon* icon = new wxIcon();
-		icon->CreateFromHICON(icon_handle);
-		//DestroyIcon(icon_handle);
+		wxIcon icon = wxIcon();
+		icon.CreateFromHICON(this->Licon_handle);
 		return icon;
 	}
-	*/
+	
 
 	void SetFrame() {
 		wxSize size = wxSize(-1,100);
@@ -64,7 +105,10 @@ private:
 		this->SetSize(size);
 
 		this->namepanel = new wxPanel(this);
-
+		wxBitmap bitmap = wxBitmap();
+		bitmap.CopyFromIcon(this->Get_exe_icon());
+		this->th_icon = new wxStaticBitmap(this->namepanel,-1,bitmap);
+		this->th_icon->SetSize(wxSize(100, 100));
 		this->name_t = new wxStaticText(this->namepanel, wxID_ANY, this->name,wxDefaultPosition,wxDefaultSize,wxTE_CENTER);
 		this->name_t->SetFont(*this->BigFont);
 
@@ -81,6 +125,7 @@ private:
 		this->index_t = new wxStaticText(this, wxID_ANY, std::to_string(this->index), wxDefaultPosition, wxDefaultSize, wxTE_CENTER);
 		this->number_t = new wxStaticText(this, wxID_ANY, this->numbering_str, wxDefaultPosition, wxDefaultSize, wxTE_CENTER);
 		
+		this->namebox->Add(this->th_icon, 1,wxEXPAND);
 		this->namebox->Add(this->name_t, 1,wxEXPAND);
 		this->namebox->Add(this->demo_t, 1,wxEXPAND);
 		this->namebox->Add(this->path_t, 1,wxEXPAND);
@@ -128,7 +173,7 @@ public:
 
 	TH_Panel(wxPanel* ParentPanel,fs::path path,TH th) : wxPanel(ParentPanel){
 		this->path = path;
-		this->path_str = path.generic_string();
+		this->path_str = path.string();
 		this->th = th;
 		this->INIT();
 		this->SetFrame();
