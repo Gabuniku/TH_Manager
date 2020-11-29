@@ -123,7 +123,7 @@ MainFrame::MainFrame()
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(wxID_ABOUT);
 	wxMenuBar* menuBar = new wxMenuBar;
-	menuBar->Append(menuFile, "&追加");
+	menuBar->Append(menuFile, "&ファイル");
 	menuBar->Append(menuHelp, "&Help");
 	SetMenuBar(menuBar);
 	CreateStatusBar();
