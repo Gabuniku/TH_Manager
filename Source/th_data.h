@@ -50,6 +50,7 @@ namespace TH_data {
 
     //THナンバリング(str) to ナンバリング
     const std::map<std::string, float> TH_THname_toNumbering = {
+    { "th00"     , 0.0f },
     { "th06"	 , 6.0f },
     { "th07"	 , 7.0f },
     { "th08"	 , 8.0f },
@@ -110,10 +111,38 @@ namespace TH_data {
         }
     }
 
+    static const bool Is_Numbering_str(std::string str) {
+        try {
+            TH_fullname.at(str);
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
+    }
+
     static const std::string Get_Numbering_str(std::string name) {
         if (TH_fullname.find(name) != end(TH_fullname)) {
             return name;
         }
+        else {
+            if (name.substr(0, 4) == "東方") {//ワイド文字なので4
+                name = TH_name_toNumbering_str.at(name.substr(4, name.size()));
+            }
+            if (name.substr(name.size() - 2, name.size()) == "tr") {
+                name = name.substr(0,name.size() - 2);
+            }
+            if(TH_data::Is_Numbering_str(name)){
+                return name;
+            }
+            else {
+                return "th00";
+            }
+        }
+     }
+    static const float Get_Numbering(std::string numbering_str) {
+        
+        return TH_THname_toNumbering.at(numbering_str);
      }
 }
 //#endif

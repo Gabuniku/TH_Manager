@@ -160,7 +160,6 @@
     <ClCompile Include="include\cppglob\fnmatch.cpp" />
     <ClCompile Include="include\cppglob\glob.cpp" />
     <ClCompile Include="include\json11\json11.cpp" />
-    <ClCompile Include="Source\Test.cpp" />
     <ClCompile Include="Source\TH.cpp" />
     <ClCompile Include="Source\th_mgr.cpp" />
     <ClCompile Include="Source\TH_Panel.cpp" />

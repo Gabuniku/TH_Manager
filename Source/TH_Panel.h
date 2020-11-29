@@ -18,47 +18,9 @@
 
 namespace fs = std::filesystem;
 
-class TH_Icon_Panel : public wxPanel {
-	
-public:
-	wxIcon* icon;
-	HICON Licon_handle, Sicon_handle;
-	PCTSTR filename = L"D:\\Appdatas\\上海アリス幻樂団\\東方地霊殿体験版\\th11.exe";
-
-	TH_Icon_Panel(wxPanel* parent,std::string name):wxPanel(parent){
-		//this->filename = (PCTSTR)name.c_str();
-		this->SetSize(wxSize(100,100));
-		this->Set_exe_ico();
-		wxStaticBitmap bit = wxStaticBitmap();
-		bit.SetIcon(*this->icon);
-	}
-	~TH_Icon_Panel(){
-		DestroyIcon(Licon_handle);
-		DestroyIcon(Sicon_handle);
-	}
-
-
-	void OnPaint() {}
-
-	void Set_exe_ico() {
-		UINT icon_index = 0;
-		UINT get = ExtractIconEx(this->filename, 0, &this->Licon_handle, &this->Sicon_handle, 1);
-		if (get > 0) {
-		//wxMessageBox(std::to_string(get));
-			this->icon = new wxIcon();
-			this->icon->CreateFromHICON(Licon_handle);
-		}
-	}
-	void render(wxPaintEvent& evt) { this->render(); }
-	void render() {
-		wxMessageBox("");
-		wxClientDC dc(this);
-		dc.SetBrush(*wxGREEN_BRUSH); // green filling
-		dc.SetPen(wxPen(wxColor(255, 0, 0), 5)); // 5-pixels-thick red outline
-		dc.DrawCircle(wxPoint(0, 0), 25 /* radius */);
-		//HDC hdc = dc.GetHDC();
-		//DrawIconEx(hdc,0,0,Licon_handle,100,100,0,NULL,DI_NORMAL);
-	}
+struct TH_P {
+	fs::path path;
+	TH th;
 };
 
 class TH_Panel : public wxPanel
@@ -67,7 +29,6 @@ private:
 	wxBoxSizer *Boxsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *namebox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* command_box = new wxBoxSizer(wxVERTICAL);
-	TH_Icon_Panel* th_iconPanel;
 	wxStaticBitmap* th_icon;
 	wxPanel *namepanel;
 	wxPanel *commandpanel;
@@ -80,12 +41,55 @@ private:
 	wxStaticBitmap* image;
 	wxFont* BigFont = new wxFont(15,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
 	HICON Licon_handle;
-	TH th;
+
 	
 	void INIT(){
 		this->name = this->th.name;
 		this->numbering_str = this->th.numbering_str;
-		this->index = this->th.index;		
+		this->numbering = this->th.numbering;
+		this->index = this->th.index;
+	}
+
+	void OnRUN_th(wxEvent &e){
+		 STARTUPINFO si = { sizeof(STARTUPINFO) };
+		 PROCESS_INFORMATION pi = {};
+		 CreateProcess(this->path.wstring().c_str(),(LPWSTR)L"",NULL,NULL,FALSE,0,NULL,(LPWSTR)this->path.parent_path().wstring().c_str(),&si,&pi);
+		 CloseHandle(pi.hThread);
+		 CloseHandle(pi.hProcess);
+	}
+	void OnRUN_custom(wxEvent &e){
+		 STARTUPINFO si = { sizeof(STARTUPINFO) };
+		 PROCESS_INFORMATION pi = {};
+		 fs::path custom_path = this->path.parent_path().append("custom.exe");
+		 CreateProcess(custom_path.wstring().c_str(),(LPWSTR)L"",NULL,NULL,FALSE,0,NULL,this->path.parent_path().wstring().c_str(),&si,&pi);
+		 CloseHandle(pi.hThread);
+		 CloseHandle(pi.hProcess);
+	}
+	void OnOpenfolder(wxEvent& e) {
+		STARTUPINFO si = { sizeof(STARTUPINFO) };
+		PROCESS_INFORMATION pi = {};
+		std::wstring cmd_str = std::wstring(L"explorer.exe ") + this->path.parent_path().make_preferred().wstring();
+		LPWSTR cmd = (LPWSTR)cmd_str.c_str();
+		CreateProcess(NULL,cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	void OnOpenSavefolder(wxEvent& e) {
+		//セーブフォルダー
+		STARTUPINFO si = { sizeof(STARTUPINFO) };
+		PROCESS_INFORMATION pi = {};
+		std::wstring cmd_str = std::wstring(L"explorer.exe ") + this->th.save_path.wstring();
+		LPWSTR cmd = (LPWSTR)cmd_str.c_str();
+		CreateProcess(NULL,cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	void OnDelete(wxEvent &e){
+		wxMessageDialog* mes = new wxMessageDialog(this, this->name + "をリストから削除しますか？", "確認", wxICON_QUESTION | wxOK | wxCANCEL);
+		if(mes->ShowModal() == wxID_OK){
+			this->Destroy();
+		}
+		delete mes;
 	}
 	
 	wxIcon Get_exe_icon() {
@@ -97,7 +101,10 @@ private:
 		icon.CreateFromHICON(this->Licon_handle);
 		return icon;
 	}
-	
+	bool operator<(const TH_Panel& another) const
+	{
+		return this->numbering < another.numbering;
+	};
 
 	void SetFrame() {
 		wxSize size = wxSize(-1,100);
@@ -141,6 +148,20 @@ private:
 		wxButton* open_save_btn = new wxButton(this->commandpanel, command_id, "セーブフォルダー\nを開く");
 		wxButton* delete_btn = new wxButton(this, command_id, "一覧から削除");
 
+		run_btn->Bind(wxEVT_BUTTON, &TH_Panel::OnRUN_th,this);
+		custom_btn->Bind(wxEVT_BUTTON, &TH_Panel::OnRUN_custom,this);
+		open_btn->Bind(wxEVT_BUTTON, &TH_Panel::OnOpenfolder,this);
+		open_save_btn->Bind(wxEVT_BUTTON, &TH_Panel::OnOpenSavefolder,this);
+		delete_btn->Bind(wxEVT_BUTTON, &TH_Panel::OnDelete,this);
+
+		if(!fs::exists(this->path.parent_path().append("custom.exe"))) {
+			custom_btn->Disable();
+		}
+		if (this->numbering < 12.5f) {
+			open_save_btn->Hide();
+		}
+
+
 		this->command_box->Add(open_btn, 1,		wxGROW | wxALL , 5);
 		this->command_box->Add(open_save_btn, 1,wxGROW | wxALL, 5);
 
@@ -168,6 +189,7 @@ public:
 	std::function<void(int)> run_fn;
 	std::function<void(int)> setting_fn;
 	float numbering = 0.0f;
+	TH th;
 
 	//コンストラクタ
 
@@ -178,10 +200,24 @@ public:
 		this->INIT();
 		this->SetFrame();
 	}
+	TH_Panel(wxPanel* ParentPanel,TH_P th_p) : wxPanel(ParentPanel){
+		this->path = th_p.path;
+		this->path_str = path.string();
+		this->th = th_p.th;
+		this->INIT();
+		this->SetFrame();
+	}
 
 	~TH_Panel() {
 		delete this->BigFont;
 		delete this->image;
+	}
+
+	TH_P OUTPUT() {
+		TH_P th_p;
+		th_p.path = this->path;
+		th_p.th = this->th;
+		return th_p;
 	}
 
 };

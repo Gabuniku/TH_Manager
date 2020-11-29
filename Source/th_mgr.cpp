@@ -52,8 +52,8 @@ const std::string ABOUT = "東方マネージャー Ver : "+ VERSION_STR+ "\n"+ 
 const std::string default_setting_json = R"({"dirs":[] })";
 
 fs::path SELF_PATH;
-std::vector<std::string> PATH_VECTOR;
 std::string MATCH_PATTERN = R"(\**\**th**.exe)";
+std::vector<TH> TH_vector;
 
 const void Get_self_path() {
 	wchar_t path[MAX_PATH + 1];
@@ -71,7 +71,8 @@ class MainFrame : public wxFrame
 public:
 	MainFrame();
 	wxPanel* ROOT_PANEL;
-	//std::vector<TH_Panel> THp_VECTOR;
+	std::vector<TH_Panel*> TH_P_vector;
+	
 	wxBoxSizer* ROOT_BOX = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* controller_box = new wxBoxSizer(wxHORIZONTAL);
 	wxPanel* controller_panel;
@@ -86,6 +87,7 @@ public:
 	void Save_setting_file();
 	void Add_TH_Panel(std::vector<fs::path>);
 	void Add_TH_Panel(std::string);
+	void Add_TH_Panel(TH_Panel*);
 
 private:
 	void OnClose(wxCloseEvent&event);
@@ -94,6 +96,10 @@ private:
 	void OnSearch_dirs(wxCommandEvent& event);
 	void OnSearch_TH_exe(wxCommandEvent& event);
 	void show(wxCommandEvent& event);
+	void Sort();
+	void Sort(wxCommandEvent& event);
+	void ReSet_THPanel(wxCommandEvent& event);
+	void ReSet_THPanel();
 	
 };
 
@@ -117,7 +123,7 @@ MainFrame::MainFrame()
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(wxID_ABOUT);
 	wxMenuBar* menuBar = new wxMenuBar;
-	menuBar->Append(menuFile, "&File");
+	menuBar->Append(menuFile, "&追加");
 	menuBar->Append(menuHelp, "&Help");
 	SetMenuBar(menuBar);
 	CreateStatusBar();
@@ -136,8 +142,11 @@ MainFrame::MainFrame()
 	search_btn->Bind(wxEVT_BUTTON, &MainFrame::OnSearch_TH_exe, this, wxID_ANY);
 	wxButton* search_dir_btn = new wxButton(this->controller_panel, wxID_ANY, "フォルダー内を捜索");
 	search_dir_btn->Bind(wxEVT_BUTTON, &MainFrame::OnSearch_dirs, this, wxID_ANY);
+	wxButton* sord_btn = new wxButton(this->controller_panel, wxID_ANY, "昇順に並び替え");
+	sord_btn->Bind(wxEVT_BUTTON, &MainFrame::Sort, this, wxID_ANY);
 	this->controller_box->Add(search_btn, 1, wxEXPAND);
 	this->controller_box->Add(search_dir_btn, 1, wxEXPAND);
+	this->controller_box->Add(sord_btn, 1, wxEXPAND);
 
 	this->controller_panel->SetSizer(this->controller_box);
 
@@ -159,11 +168,41 @@ MainFrame::MainFrame()
 		std::string path_t = path.string_value();
 		this->Add_TH_Panel(path_t);
 	}
-
 	this->ROOT_PANEL->Layout();
 
 }
 
+void MainFrame::Sort(){
+	std::sort(this->TH_P_vector.begin(), TH_P_vector.end(), [](TH_Panel* a,TH_Panel* b) {
+		return a->numbering < b->numbering;
+		});// numberingにて比較
+	this->ReSet_THPanel();
+}
+void MainFrame::Sort(wxCommandEvent& event){
+	this->Sort();
+}
+void MainFrame::ReSet_THPanel(wxCommandEvent& event){
+	this->ReSet_THPanel();
+}
+void MainFrame::ReSet_THPanel(){
+	std::vector<TH_P> TH_st;
+	for (TH_Panel* th_p : this->TH_P_vector) {
+		try {
+			TH_st.push_back(th_p->OUTPUT());
+		}
+		catch (...) {}
+	}
+	this->TH_list_window->DestroyChildren();
+	int i = 0;
+	std::vector<TH_Panel*>().swap(this->TH_P_vector);
+	std::vector<TH>().swap(TH_vector);
+	for (TH_P thst : TH_st) {
+		thst.th.index = i;
+		TH_Panel* th_p = new TH_Panel(this->TH_list_window,thst);
+		this->Add_TH_Panel(th_p);
+		i++;
+	}
+}
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {	
@@ -178,28 +217,40 @@ void MainFrame::Add_TH_Panel(std::vector<fs::path> path){
 	for(fs::path th_path : path){
 		TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
 
-		TH_Panel* th_p =  NEW TH_Panel(this->TH_list_window, th_path, th);
+		TH_Panel* th_p =  new TH_Panel(this->TH_list_window, th_path, th);
 		
 		this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
-		PATH_VECTOR.push_back(th_path.generic_string());
 		SetStatusText(th_path.generic_string());
+		this->TH_P_vector.push_back(th_p);
+		TH_vector.push_back(th);
 	}
 	this->TH_list_window->SetSizer(this->TH_list_box);
 	this->TH_list_box->Layout();
 	this->ROOT_BOX->Layout();
+
 }
 
 void MainFrame::Add_TH_Panel(std::string path){
 	fs::path th_path = path;
 	TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
-	TH_Panel* th_p =  NEW TH_Panel(this->TH_list_window, th_path, th);
-	
+	TH_Panel* th_p =  new TH_Panel(this->TH_list_window, th_path, th);
 	this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
-	PATH_VECTOR.push_back(th_path.generic_string());
 	SetStatusText(th_path.generic_string());
 	this->TH_list_window->SetSizer(this->TH_list_box);
 	this->TH_list_box->Layout();
 	this->ROOT_BOX->Layout();
+	this->TH_P_vector.push_back(th_p);
+	TH_vector.push_back(th);
+}
+void MainFrame::Add_TH_Panel(TH_Panel*th_p){
+    th_p->index = (int)this->TH_list_box->GetItemCount();	
+	this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
+	SetStatusText(th_p->path.generic_string());
+	this->TH_list_window->SetSizer(this->TH_list_box);
+	this->TH_list_box->Layout();
+	this->ROOT_BOX->Layout();
+	this->TH_P_vector.push_back(th_p);
+	TH_vector.push_back(th_p->th);
 }
 
 void MainFrame::OnSearch_dirs(wxCommandEvent& event) {
@@ -257,8 +308,12 @@ void MainFrame::Load_setting_file() {
 		this->setting_json = json11::Json::parse(file_str, err);
 	}
 }
+
 void MainFrame::Save_setting_file() {
-	std::vector<std::string> dirs = PATH_VECTOR;
+	std::vector<std::string> dirs;
+	for (TH th : TH_vector) {
+		dirs.push_back(th.path_str);
+	}
 	json11::Json::object parent = {
 		{"dirs",dirs}
 	};
@@ -289,9 +344,7 @@ bool MyApp::OnInit() {
 	return true;
 }
 int MyApp::OnExit() {
-	//wxMessageBox(std::to_string(PATH_VECTOR.size()));
 	this->frame->Save_setting_file();
-	std::vector<std::string>().swap(PATH_VECTOR);
 	
 	return 0;
 }
