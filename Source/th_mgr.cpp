@@ -53,9 +53,9 @@ const std::string default_setting_json = R"({"dirs":[] })";
 
 fs::path SELF_PATH;
 std::string MATCH_PATTERN = R"(\**\**th**.exe)";
-std::vector<TH> TH_vector;
+std::vector<TH*> TH_vector;
 
-const void Get_self_path() {
+static void Get_self_path() {
 	wchar_t path[MAX_PATH + 1];
 	if (0 != GetModuleFileName(NULL, path, MAX_PATH)) {
 		SELF_PATH = fs::current_path();
@@ -64,7 +64,21 @@ const void Get_self_path() {
 		SELF_PATH = fs::path(path);
 	}
 }
-
+static void Sort_th(){
+	std::vector<TH*> th_v;
+	for (TH* th : TH_vector) {
+		//ヌルポを除去
+		if (th->NODATA) {
+			delete th;
+			th = nullptr;
+			continue; }
+		th_v.push_back(th);
+	}
+	TH_vector = th_v;
+	std::sort(TH_vector.begin(), TH_vector.end(), [](TH* a, TH* b) {
+		return a->numbering < b->numbering;
+		});// numberingにて比較
+}
 
 class MainFrame : public wxFrame
 {
@@ -83,8 +97,6 @@ public:
 	fs::path self_path;
 	
 	void Load_setting_file();
-	void Save_setting_file(wxCommandEvent& event);
-	void Save_setting_file();
 	void Add_TH_Panel(std::vector<fs::path>);
 	void Add_TH_Panel(std::string);
 	void Add_TH_Panel(TH_Panel*);
@@ -113,7 +125,6 @@ std::vector<fs::path> Search_ThDir(std::string root_path = "") {
 MainFrame::MainFrame()
 	: wxFrame(NULL, wxID_ANY, "東方 マネージャー")
 {
-
 	this->SetSizeHints(1000, 500);
 
 	wxMenu* menuFile = new wxMenu;
@@ -184,13 +195,30 @@ void MainFrame::Sort(wxCommandEvent& event){
 void MainFrame::ReSet_THPanel(wxCommandEvent& event){
 	this->ReSet_THPanel();
 }
+void MainFrame::ReSet_THPanel() {
+	this->TH_list_window->DestroyChildren();
+	int i = 0;
+	std::vector<TH_Panel*>().swap(this->TH_P_vector);
+	Sort_th();
+	std::vector<TH*> th_v = TH_vector;
+	TH_vector.clear();
+	for (TH* th : th_v) {
+		th->index = i;
+		TH_Panel* th_p = new TH_Panel(this->TH_list_window, th);
+		this->Add_TH_Panel(th_p);
+		i++;
+	}
+}
+/*
 void MainFrame::ReSet_THPanel(){
 	std::vector<TH_P> TH_st;
+
 	for (TH_Panel* th_p : this->TH_P_vector) {
 		try {
-			TH_st.push_back(th_p->OUTPUT());
+				TH_st.push_back(th_p->OUTPUT());
 		}
-		catch (...) {}
+		catch (std::length_error) {
+		}
 	}
 	this->TH_list_window->DestroyChildren();
 	int i = 0;
@@ -198,11 +226,12 @@ void MainFrame::ReSet_THPanel(){
 	std::vector<TH>().swap(TH_vector);
 	for (TH_P thst : TH_st) {
 		thst.th.index = i;
+		if(thst.path == ""){continue;}
 		TH_Panel* th_p = new TH_Panel(this->TH_list_window,thst);
 		this->Add_TH_Panel(th_p);
 		i++;
 	}
-}
+}*/
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {	
@@ -215,7 +244,7 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 
 void MainFrame::Add_TH_Panel(std::vector<fs::path> path){
 	for(fs::path th_path : path){
-		TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
+		TH* th = new TH(th_path, (int)this->TH_list_box->GetItemCount());
 
 		TH_Panel* th_p =  new TH_Panel(this->TH_list_window, th_path, th);
 		
@@ -231,8 +260,9 @@ void MainFrame::Add_TH_Panel(std::vector<fs::path> path){
 }
 
 void MainFrame::Add_TH_Panel(std::string path){
-	fs::path th_path = path;
-	TH th = TH(th_path, (int)this->TH_list_box->GetItemCount());
+	if (path == "") { return; }
+	fs::path th_path(path);
+	TH* th = new TH(th_path, (int)this->TH_list_box->GetItemCount());
 	TH_Panel* th_p =  new TH_Panel(this->TH_list_window, th_path, th);
 	this->TH_list_box->Add(th_p, wxSizerFlags().Expand().Proportion(1));
 	SetStatusText(th_path.generic_string());
@@ -309,31 +339,14 @@ void MainFrame::Load_setting_file() {
 	}
 }
 
-void MainFrame::Save_setting_file() {
-	std::vector<std::string> dirs;
-	for (TH th : TH_vector) {
-		dirs.push_back(th.path_str);
-	}
-	json11::Json::object parent = {
-		{"dirs",dirs}
-	};
-	json11::Json json = json11::Json{ parent };
-	std::string dump_str = json.dump();
-	std::ofstream setting_file("setting.json");
-	setting_file << dump_str;
-	setting_file.close();
-}
-
-void MainFrame::Save_setting_file(wxCommandEvent& event) {
-	this->Save_setting_file();
-}
-
 
 class MyApp : public wxApp
 {
 public:
 	virtual bool OnInit();
 	virtual int OnExit();
+	void Sort_th();
+	void Save_json();
 	MainFrame* frame;
 };
 
@@ -344,8 +357,24 @@ bool MyApp::OnInit() {
 	return true;
 }
 int MyApp::OnExit() {
-	this->frame->Save_setting_file();
+	this->Save_json();
 	
 	return 0;
+}
+
+void MyApp::Save_json() {
+	std::vector<std::string> dirs;
+	for (TH* th : TH_vector) {
+		dirs.push_back(th->path_str);
+		delete th;
+	}
+	json11::Json::object parent = {
+		{"dirs",dirs}
+	};
+	json11::Json json = json11::Json{ parent };
+	std::string dump_str = json.dump();
+	std::ofstream setting_file("setting.json");
+	setting_file << dump_str;
+	setting_file.close();
 }
 wxIMPLEMENT_APP(MyApp);

@@ -44,8 +44,14 @@ public:
 	std::filesystem::path save_path;
 	int index=0;
 	bool Is_demo;
+	bool NODATA = false;
 
-	TH() {}
+	void DESTROY() {
+		this->NODATA = true;
+	}
+
+	TH() {
+	}
 
 	TH(std::string path,int index=0){
 		this->path = std::filesystem::path(path);

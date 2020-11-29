@@ -18,10 +18,6 @@
 
 namespace fs = std::filesystem;
 
-struct TH_P {
-	fs::path path;
-	TH th;
-};
 
 class TH_Panel : public wxPanel
 {
@@ -44,10 +40,10 @@ private:
 
 	
 	void INIT(){
-		this->name = this->th.name;
-		this->numbering_str = this->th.numbering_str;
-		this->numbering = this->th.numbering;
-		this->index = this->th.index;
+		this->name = this->th->name;
+		this->numbering_str = this->th->numbering_str;
+		this->numbering = this->th->numbering;
+		this->index = this->th->index;
 	}
 
 	void OnRUN_th(wxEvent &e){
@@ -78,7 +74,7 @@ private:
 		//セーブフォルダー
 		STARTUPINFO si = { sizeof(STARTUPINFO) };
 		PROCESS_INFORMATION pi = {};
-		std::wstring cmd_str = std::wstring(L"explorer.exe ") + this->th.save_path.wstring();
+		std::wstring cmd_str = std::wstring(L"explorer.exe ") + this->th->save_path.wstring();
 		LPWSTR cmd = (LPWSTR)cmd_str.c_str();
 		CreateProcess(NULL,cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 		CloseHandle(pi.hThread);
@@ -87,6 +83,7 @@ private:
 	void OnDelete(wxEvent &e){
 		wxMessageDialog* mes = new wxMessageDialog(this, this->name + "をリストから削除しますか？", "確認", wxICON_QUESTION | wxOK | wxCANCEL);
 		if(mes->ShowModal() == wxID_OK){
+			this->th->DESTROY();
 			this->Destroy();
 		}
 		delete mes;
@@ -120,7 +117,7 @@ private:
 		this->name_t->SetFont(*this->BigFont);
 
 		std::string demo;
-		if (this->th.Is_demo) {
+		if (this->th->Is_demo) {
 			demo = "体験版"; 
 			this->numbering_str += "r";
 		}
@@ -181,29 +178,29 @@ private:
 public:
 	fs::path path;
 	int index;
-	std::string path_str;
-	std::string name;
-	std::string version_str;
-	std::string fullname;
-	std::string numbering_str;
+	std::string path_str="";
+	std::string name="";
+	std::string version_str="";
+	std::string fullname="";
+	std::string numbering_str="";
 	std::function<void(int)> run_fn;
 	std::function<void(int)> setting_fn;
 	float numbering = 0.0f;
-	TH th;
+	TH* th;
 
 	//コンストラクタ
 
-	TH_Panel(wxPanel* ParentPanel,fs::path path,TH th) : wxPanel(ParentPanel){
+	TH_Panel(wxPanel* ParentPanel,fs::path path,TH *th) : wxPanel(ParentPanel){
 		this->path = path;
 		this->path_str = path.string();
 		this->th = th;
 		this->INIT();
 		this->SetFrame();
 	}
-	TH_Panel(wxPanel* ParentPanel,TH_P th_p) : wxPanel(ParentPanel){
-		this->path = th_p.path;
+	TH_Panel(wxPanel* ParentPanel,TH *th) : wxPanel(ParentPanel){
+		this->path = th->path;
 		this->path_str = path.string();
-		this->th = th_p.th;
+		this->th = th;
 		this->INIT();
 		this->SetFrame();
 	}
@@ -212,13 +209,5 @@ public:
 		delete this->BigFont;
 		delete this->image;
 	}
-
-	TH_P OUTPUT() {
-		TH_P th_p;
-		th_p.path = this->path;
-		th_p.th = this->th;
-		return th_p;
-	}
-
 };
 
