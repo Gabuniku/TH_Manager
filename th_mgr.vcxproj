@@ -171,6 +171,7 @@
     <ClInclude Include="include\cppglob\glob.hpp" />
     <ClInclude Include="include\cppglob\glob_iterator.hpp" />
     <ClInclude Include="include\cppglob\iglob.hpp" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Source\NEW.h" />
     <ClInclude Include="Source\resource.h" />
     <ClInclude Include="Source\TH.h" />
@@ -181,7 +182,7 @@
     <ResourceCompile Include="th_mgr.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon1.ico" />
+    <Image Include="icon2.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

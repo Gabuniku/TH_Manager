@@ -129,17 +129,18 @@ MainFrame::MainFrame()
 
 	wxMenu* menuFile = new wxMenu;
 	menuFile->AppendSeparator();
-	menuFile->Append(wxID_ADD);
-	menuFile->Append(wxID_EXIT);
+	menuFile->Append(wxID_ADD,"追加");
+	menuFile->Append(wxID_EXIT,"終了");
 	wxMenu* menuHelp = new wxMenu;
 	menuHelp->Append(wxID_ABOUT);
 	wxMenuBar* menuBar = new wxMenuBar;
 	menuBar->Append(menuFile, "&ファイル");
-	menuBar->Append(menuHelp, "&Help");
+	menuBar->Append(menuHelp, "&ヘルプ");
 	SetMenuBar(menuBar);
 	CreateStatusBar();
 	Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
 	Bind(wxEVT_MENU, &MainFrame::OnSearch_TH_exe, this, wxID_ADD);
+	Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
 
 	//Bind(wxEVT_DESTROY, &MainFrame::OnExit, this, wxID_EXIT);
 
