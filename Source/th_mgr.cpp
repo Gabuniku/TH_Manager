@@ -47,7 +47,7 @@ namespace fs = std::filesystem;
 
 //バージョン設定
 const float VERSION = 0.01f;
-const std::string VERSION_STR = "0.0.1";
+const std::string VERSION_STR = "0.0.2";
 const std::string ABOUT = "東方マネージャー Ver : "+ VERSION_STR+ "\n"+ "by Gabuniku";
 const std::string default_setting_json = R"({"dirs":[] })";
 
@@ -291,7 +291,9 @@ void MainFrame::OnSearch_dirs(wxCommandEvent& event) {
 		wxString wxpath = dig->GetPath();
 		std::string path = wxpath.ToStdString();
 		std::vector<fs::path> dirs;
+		this->SetTitle("東方 マネージャー [検索中]");
 		dirs = Search_ThDir(path);
+		this->SetTitle("東方 マネージャー");
 		if (dirs.size() > 0) {
 			std::string th_count = std::to_string(dirs.size());
 			wxMessageBox(th_count + "件の実行ファイルが見つかりました","東方はいいぞ!");
